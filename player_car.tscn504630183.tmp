@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://cc2navofgnm3s"]
+
+[ext_resource type="Script" uid="uid://bn28cn6q137oe" path="res://player_car.gd" id="1_dnlqt"]
+[ext_resource type="Texture2D" uid="uid://vabkc0uy8kmb" path="res://Audi.png" id="2_kb8hb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kb8hb"]
+size = Vector2(219, 102)
+
+[node name="PlayerCar" type="CharacterBody2D"]
+position = Vector2(0, 9)
+script = ExtResource("1_dnlqt")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(3, 3)
+rotation = 1.5707964
+texture = ExtResource("2_kb8hb")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, 1)
+shape = SubResource("RectangleShape2D_kb8hb")
+
+[node name="PlayerCamera" type="Camera2D" parent="."]
+position = Vector2(1, 30)
+position_smoothing_enabled = true
