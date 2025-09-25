@@ -10,10 +10,16 @@ size = Vector2(219, 102)
 position = Vector2(0, 9)
 script = ExtResource("1_dnlqt")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="CarBody" type="Node2D" parent="."]
+
+[node name="BodySprite" type="Sprite2D" parent="CarBody"]
 position = Vector2(3, 3)
 rotation = 1.5707964
 texture = ExtResource("2_kb8hb")
+
+[node name="FrontTires" type="Sprite2D" parent="CarBody"]
+
+[node name="RearTires" type="Sprite2D" parent="CarBody"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-1, 1)

@@ -1,4 +1,4 @@
-extends CharacterBody2D 
+extends CharacterBody2D
 
 # ===== ПАРАМЕТРЫ ДВИЖЕНИЯ =====
 var speed = 0.0
@@ -29,41 +29,29 @@ var brake_slip_strength = 0.04
 var lateral_damping = 300.0
 var max_lateral_speed = 180.0
 
-# ===== СТОЛКНОВЕНИЯ / ГОНКА =====
-var is_colliding_with_wall = false
-var current_lap = 1
-var total_laps = 3
-var lap_time = 0.0
-var total_time = 0.0
-var best_lap_time = 999.9
-var can_trigger_finish = true
-var race_started = true
-var race_finished = false
-
 # ===== ПОВОРОТ РУЛЯ =====
-var turn_input = 0.0          # моментальное положение кнопки
-var steer_angle = 0.0         # плавное положение руля
-var current_turn = 0.0        # финальная угловая скорость
+var turn_input = 0.0
+var steer_angle = 0.0
+var current_turn = 0.0
 
-func _ready():
-	print("=== CAR: inertia + smooth steering ===")
+# ===== ЭФФЕКТЫ ДРИФТА =====
+var drift_smoke_effect: PackedScene = load("res://drift_smoke.tscn")
+
+
+var smoke_particles: Array = []
+var tire_smoke_timer = 0.0
 
 func _physics_process(delta):
-	if race_finished:
-		return
-
-	# 1) читаем ввод поворота (-1..1)
+	# стандартное управление (как в твоём коде)
 	turn_input = 0.0
 	if Input.is_action_pressed("ui_right"):
 		turn_input += 1.0
 	if Input.is_action_pressed("ui_left"):
 		turn_input -= 1.0
 
-	# 2) плавно интерполируем руль к turn_input
 	steer_angle = lerp(steer_angle, turn_input, 5.0 * delta)
 	current_turn = steer_angle * rotation_speed
 
-	# 3) газ / тормоз
 	is_braking = false
 	if Input.is_action_pressed("ui_up"):
 		speed = move_toward(speed, max_speed, acceleration * delta)
@@ -73,42 +61,30 @@ func _physics_process(delta):
 		var brake_factor = lerp(1.0, brake_in_turn_factor, turn_factor)
 		var target_speed = -max_speed * 0.5
 		speed = move_toward(speed, target_speed, brake_power * brake_factor * delta)
-	# без самотормоза
 
-	# 3.1) лёгкая потеря скорости при рулении
-	var turn_loss = abs(steer_angle) * 0.015 # 1.5% max
+	var turn_loss = abs(steer_angle) * 0.015
 	if turn_loss > 0.0 and abs(speed) > 50.0:
 		speed *= (1.0 - turn_loss * delta)
 
-	# 4) разложение скорости
 	var forward_vec = transform.x.normalized() * speed
 	var lateral_vec = velocity - velocity.project(transform.x)
-
-	# 5) дрифт
 	lateral_vec = apply_advanced_drift(delta, lateral_vec)
 	lateral_vec = apply_brake_slip(delta, lateral_vec)
 
 	if lateral_vec.length() > max_lateral_speed:
 		lateral_vec = lateral_vec.normalized() * max_lateral_speed
 	lateral_vec = lateral_vec.move_toward(Vector2.ZERO, lateral_damping * delta)
-
 	velocity = forward_vec + lateral_vec
 
-	# 6) плавный поворот
 	if abs(speed) > 30.0:
 		var turn_power = current_turn * (abs(speed) / max_speed) * delta
 		var max_turn_delta = 0.12
 		rotation += clamp(turn_power, -max_turn_delta, max_turn_delta)
 
-	move_and_slide()
-	check_wall_collisions()
+	# спавним дым
+	update_drift_smoke(delta)
 
-	if race_started and not race_finished:
-		lap_time += delta
-		total_time += delta
-		if get_parent().has_method("update_ui"):
-			var speed_kmh = abs(speed) * 0.3
-			get_parent().update_ui(current_lap, total_laps, lap_time, best_lap_time, speed_kmh)
+	move_and_slide()
 
 func apply_brake_slip(delta, lateral_vec):
 	if is_braking and abs(speed) > brake_slip_threshold:
@@ -145,50 +121,42 @@ func apply_advanced_drift(delta, lateral_vec):
 		rear_wheel_slip = lerp(rear_wheel_slip, 0.0, drift_recovery)
 	return lateral_vec
 
-func check_wall_collisions():
-	is_colliding_with_wall = get_slide_collision_count() > 0
-	if is_colliding_with_wall:
-		rear_wheel_slip = 0.0
-		brake_slip = 0.0
+# ===== ДЫМ ПРИ ДРИФТЕ =====
+func update_drift_smoke(delta):
+	if (rear_wheel_slip > 0.3 or brake_slip > 0.2) and abs(speed) > 50.0:
+		tire_smoke_timer += delta
+		if tire_smoke_timer > 0.15:
+			spawn_smoke_particle()
+			tire_smoke_timer = 0.0
 
-func _process(delta):
-	check_finish_line()
+	# удаляем старые
+	for i in range(smoke_particles.size() - 1, -1, -1):
+		if not is_instance_valid(smoke_particles[i]):
+			smoke_particles.remove_at(i)
 
-func check_finish_line():
-	var finish = get_parent().get_node_or_null("FinishLine")
-	if finish and can_trigger_finish:
-		var distance = global_position.distance_to(finish.global_position)
-		if distance < 150.0:
-			complete_lap()
-			can_trigger_finish = false
-	elif can_trigger_finish == false:
-		var finish_node = get_parent().get_node_or_null("FinishLine")
-		if finish_node:
-			var distance = global_position.distance_to(finish_node.global_position)
-			if distance > 250.0:
-				can_trigger_finish = true
-
-func complete_lap():
-	if lap_time < best_lap_time:
-		best_lap_time = lap_time
-	current_lap += 1
-	lap_time = 0.0
-	if get_parent().has_method("show_ui_notification"):
-		if current_lap > total_laps:
-			get_parent().show_ui_notification("🎉 ПОБЕДА! Время: %.1fс" % total_time, 5.0)
-		else:
-			get_parent().show_ui_notification("КРУГ %d/%d" % [current_lap, total_laps])
-	if current_lap > total_laps:
-		finish_race()
-
-func finish_race():
-	race_finished = true
-	speed = 0.0
-	rear_wheel_slip = 0.0
-	brake_slip = 0.0
-
-func _input(event):
-	if event.is_action_pressed("ui_accept"):
-		print("=== DEBUG STATUS ===")
-		print("speed:", speed, "vel.len:", velocity.length())
-		print("turn_input:", turn_input, "steer_angle:", steer_angle, "rear_wheel_slip:", rear_wheel_slip)
+func spawn_smoke_particle():
+	if drift_smoke_effect and drift_smoke_effect is PackedScene:
+		var distance_behind = 125
+		
+		# Всегда правильные стороны независимо от поворота машины
+		var left_offset = transform.y * 35    # Левый бок
+		var right_offset = transform.y * -35  # Правый бок
+		var rear_offset = -transform.x * distance_behind
+		
+		# Левый дым
+		var smoke_left = drift_smoke_effect.instantiate()
+		get_parent().add_child(smoke_left)
+		smoke_left.global_position = global_position + rear_offset + left_offset
+		smoke_left.rotation = rotation
+		if smoke_left is CPUParticles2D:
+			smoke_left.emitting = true
+		smoke_particles.append(smoke_left)
+		
+		# Правый дым
+		var smoke_right = drift_smoke_effect.instantiate()
+		get_parent().add_child(smoke_right)
+		smoke_right.global_position = global_position + rear_offset + right_offset
+		smoke_right.rotation = rotation
+		if smoke_right is CPUParticles2D:
+			smoke_right.emitting = true
+		smoke_particles.append(smoke_right)

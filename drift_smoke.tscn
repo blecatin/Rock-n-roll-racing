@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3 uid="uid://c02mepvdrptfx"]
+
+[ext_resource type="Script" uid="uid://danqys02uegjd" path="res://drift_smoke.gd" id="1_ir62c"]
+[ext_resource type="Texture2D" uid="uid://kthu3qko3d7" path="res://smoke.png" id="2_ir62c"]
+[ext_resource type="Script" uid="uid://capgcbn7wfwk8" path="res://cpu_particles_2d.gd" id="3_roncf"]
+
+[node name="Node2D" type="Node2D"]
+scale = Vector2(0.3, 0.3)
+script = ExtResource("1_ir62c")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+amount = 30
+texture = ExtResource("2_ir62c")
+lifetime = 1.5
+speed_scale = 0.1
+explosiveness = 0.8
+scale_amount_min = 2.0
+scale_amount_max = 2.0
+script = ExtResource("3_roncf")
+life_time = 2.0
+
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="."]
+amount = 50
+texture = ExtResource("2_ir62c")
+lifetime = 3.0
+speed_scale = 0.1
+explosiveness = 0.5
+scale_amount_min = 2.0
+scale_amount_max = 2.0
+script = ExtResource("3_roncf")
