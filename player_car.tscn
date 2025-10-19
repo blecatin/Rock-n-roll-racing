@@ -1,7 +1,15 @@
-[gd_scene load_steps=4 format=3 uid="uid://cc2navofgnm3s"]
+[gd_scene load_steps=12 format=3 uid="uid://cc2navofgnm3s"]
 
 [ext_resource type="Script" uid="uid://bn28cn6q137oe" path="res://player_car.gd" id="1_dnlqt"]
 [ext_resource type="Texture2D" uid="uid://vabkc0uy8kmb" path="res://Audi.png" id="2_kb8hb"]
+[ext_resource type="Script" uid="uid://dbie5tn6xhuco" path="res://PlayerCar/Systems/CarMovement.gd" id="3_w5j10"]
+[ext_resource type="Script" uid="uid://bmfy1pf01ji5f" path="res://PlayerCar/Systems/GearboxSystem.gd" id="4_o6f6b"]
+[ext_resource type="Script" uid="uid://cyltfxl51i4u0" path="res://PlayerCar/Systems/DriftSystem.gd" id="5_gpbvr"]
+[ext_resource type="Script" uid="uid://dqmxnloxsypxp" path="res://PlayerCar/Systems/CollisionSystem.gd" id="6_il017"]
+[ext_resource type="Script" uid="uid://cfa87vxkhuesw" path="res://PlayerCar/Systems/SoundSystem.gd" id="7_oij15"]
+[ext_resource type="Script" uid="uid://dvx31ule5ihor" path="res://PlayerCar/Systems/RaceSystem.gd" id="8_6pejj"]
+[ext_resource type="Script" uid="uid://cvc1i41cjdu8c" path="res://PlayerCar/Systems/EffectsSystem.gd" id="9_3fxi7"]
+[ext_resource type="Script" uid="uid://clbr4k3gew48t" path="res://PlayerCar/Systems/UI/RaceUI.gd" id="10_aefiq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kb8hb"]
 size = Vector2(219, 102)
@@ -28,3 +36,35 @@ shape = SubResource("RectangleShape2D_kb8hb")
 [node name="PlayerCamera" type="Camera2D" parent="."]
 position = Vector2(1, 30)
 position_smoothing_enabled = true
+
+[node name="Systems" type="Node2D" parent="."]
+
+[node name="CarMovement" type="Node" parent="Systems"]
+script = ExtResource("3_w5j10")
+
+[node name="GearboxSystem" type="Node" parent="Systems"]
+script = ExtResource("4_o6f6b")
+
+[node name="DriftSystem" type="Node" parent="Systems"]
+script = ExtResource("5_gpbvr")
+
+[node name="CollisionSystem" type="Node" parent="Systems"]
+script = ExtResource("6_il017")
+
+[node name="SoundSystem" type="Node" parent="Systems"]
+script = ExtResource("7_oij15")
+
+[node name="RaceSystem" type="Node" parent="Systems"]
+script = ExtResource("8_6pejj")
+
+[node name="EffectsSystem" type="Node" parent="Systems"]
+script = ExtResource("9_3fxi7")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="RaceUI" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("10_aefiq")

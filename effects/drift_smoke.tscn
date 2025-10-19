@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8rsme6n2i7o7"]
+
+[ext_resource type="Texture2D" uid="uid://kthu3qko3d7" path="res://smoke.png" id="1_sypxp"]
+[ext_resource type="Script" uid="uid://3r1etwr6vom" path="res://effects/drift_smoke.gd" id="2_yyy2e"]
+
+[node name="DriftSmoke" type="CPUParticles2D"]
+emitting = false
+texture = ExtResource("1_sypxp")
+lifetime = 0.39
+one_shot = true
+speed_scale = 0.3
+explosiveness = 0.04
+scale_amount_min = 1.5
+scale_amount_max = 1.5
+script = ExtResource("2_yyy2e")
